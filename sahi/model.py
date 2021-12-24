@@ -358,7 +358,16 @@ class Yolov5DetectionModel(DetectionModel):
 
         # set model
         try:
-            model = yolov5.load(self.model_path, device=self.device)
+            model = torch.hub.load('/kaggle/input/yolov5-lib-ds',
+                           'custom',
+                           path=self.model_path,
+                           source='local',
+                           force_reload=True)  # local repo
+            model.conf = conf  # NMS confidence threshold
+            model.iou  = 0.5  # NMS IoU threshold
+            model.classes = None   # (optional list) filter by class, i.e. = [0, 15, 16] for persons, cats and dogs
+            model.multi_label = False  # NMS multiple labels per box
+            model.max_det = 1000  # maximum number of detections per image
             model.conf = self.confidence_threshold
             self.model = model
         except Exception as e:
