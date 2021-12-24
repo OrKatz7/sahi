@@ -4,7 +4,7 @@
 import logging
 import os
 from typing import Dict, List, Optional, Union
-
+import torch
 import numpy as np
 
 from sahi.prediction import ObjectPrediction
@@ -348,27 +348,17 @@ class MmdetDetectionModel(DetectionModel):
 
 class Yolov5DetectionModel(DetectionModel):
     def load_model(self):
-        """
-        Detection model is initialized and set to self.model.
-        """
-        try:
-            import yolov5
-        except ImportError:
-            raise ImportError('Please run "pip install -U yolov5" ' "to install YOLOv5 first for YOLOv5 inference.")
-
-        # set model
         try:
             model = torch.hub.load('/kaggle/input/yolov5-lib-ds',
                            'custom',
                            path=self.model_path,
                            source='local',
                            force_reload=True)  # local repo
-            model.conf = conf  # NMS confidence threshold
+            model.conf = self.confidence_threshold  # NMS confidence threshold
             model.iou  = 0.5  # NMS IoU threshold
             model.classes = None   # (optional list) filter by class, i.e. = [0, 15, 16] for persons, cats and dogs
             model.multi_label = False  # NMS multiple labels per box
             model.max_det = 1000  # maximum number of detections per image
-            model.conf = self.confidence_threshold
             self.model = model
         except Exception as e:
             TypeError("model_path is not a valid yolov5 model path: ", e)
